@@ -2,11 +2,10 @@ interface KeypadProps {
   noteMode: boolean
   digitDone: boolean[]
   onNumber: (v: number) => void
-  onErase: () => void
-  onToggleNoteMode: () => void
 }
 
-export function Keypad({ noteMode, digitDone, onNumber, onErase, onToggleNoteMode }: KeypadProps) {
+/** 纯数字键盘：擦除/笔记已上移到信息条（贴近它们作用的选中格） */
+export function Keypad({ noteMode, digitDone, onNumber }: KeypadProps) {
   return (
     <div className="keypad">
       {Array.from({ length: 9 }, (_, i) => i + 1).map((v) => (
@@ -18,10 +17,6 @@ export function Keypad({ noteMode, digitDone, onNumber, onErase, onToggleNoteMod
           {v}
         </button>
       ))}
-      <button onClick={onErase}>擦除</button>
-      <button className={noteMode ? 'toggled' : ''} onClick={onToggleNoteMode}>
-        笔记{noteMode ? '开' : '关'}
-      </button>
     </div>
   )
 }

@@ -11,7 +11,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 18px 12px 40px;
+  padding: 16px 12px 36px;
   min-height: 100vh;
 }
 
@@ -20,9 +20,14 @@ body {
   max-width: 560px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
+:root {
+  --cell: min(10.2vw, 52px);
+}
+
+/* ---------- 顶栏 ---------- */
 header.topbar {
   display: flex;
   align-items: baseline;
@@ -32,21 +37,57 @@ header.topbar {
 
 header.topbar h1 {
   font-family: var(--title-font);
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   color: var(--accent);
   letter-spacing: 0.02em;
 }
 
 .puzzle-name {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--ink-muted);
 }
 
 .timer {
   font-family: var(--num-font);
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--ink-muted);
   white-space: nowrap;
+}
+
+/* ---------- 按钮基元：默认幽灵样式，主/次靠颜色区分 ---------- */
+button {
+  font-family: inherit;
+  background: transparent;
+  color: var(--ink);
+  border: none;
+  border-radius: 7px;
+  padding: 7px 11px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+
+button:hover {
+  background: var(--btn-hover);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+button.primary:hover {
+  filter: brightness(1.06);
+}
+
+button.toggled {
+  background: var(--accent);
+  color: #fff;
 }
 
 /* ---------- 棋盘 ---------- */
@@ -60,10 +101,6 @@ header.topbar h1 {
   box-shadow: var(--shadow);
   border-radius: 6px;
   overflow: hidden;
-}
-
-:root {
-  --cell: min(10.2vw, 52px);
 }
 
 .board-grid {
@@ -129,6 +166,10 @@ header.topbar h1 {
   z-index: 2;
 }
 
+.cell.peer {
+  background: color-mix(in srgb, var(--accent-soft) 40%, var(--surface));
+}
+
 .cell.same-value {
   background: var(--same-soft);
 }
@@ -138,6 +179,17 @@ header.topbar h1 {
 }
 .cell.conflict .value {
   color: var(--danger);
+}
+
+.cell.hint-zone {
+  background: color-mix(in srgb, var(--ink-hint) 10%, var(--surface));
+}
+
+.cell.hint-focus-cell {
+  background: var(--accent-soft);
+  outline: 2px dashed var(--ink-hint);
+  outline-offset: -2px;
+  z-index: 2;
 }
 
 .notes {
@@ -157,7 +209,6 @@ header.topbar h1 {
   color: var(--ink-muted);
 }
 
-/* 不等号：坐在边界上 */
 .sign {
   position: absolute;
   z-index: 3;
@@ -170,15 +221,69 @@ header.topbar h1 {
   text-shadow: 0 0 3px var(--surface);
 }
 
-/* ---------- 信息条 ---------- */
+/* ---------- 数字余量条：贴着棋盘的细条 ---------- */
+.digit-tracker-row {
+  align-self: center;
+  width: calc(var(--cell) * 9);
+}
+
+.digit-tracker {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tracker-chip {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 0;
+  border-radius: 0;
+  border-right: 1px solid var(--border);
+}
+
+.tracker-chip:last-child {
+  border-right: none;
+}
+
+.tracker-chip .d {
+  font-family: var(--num-font);
+  font-size: 0.9rem;
+}
+
+.tracker-chip .r {
+  font-family: var(--num-font);
+  font-size: 0.62rem;
+  color: var(--ink-muted);
+}
+
+.tracker-chip.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.tracker-chip.active .r {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tracker-chip.done {
+  opacity: 0.3;
+}
+
+/* ---------- 信息条（含擦除/笔记的上下文操作） ---------- */
 .info-strip {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   min-height: 30px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--ink-muted);
+  flex-wrap: wrap;
 }
 
 .info-strip .addr {
@@ -186,11 +291,43 @@ header.topbar h1 {
   color: var(--ink);
 }
 
+.info-actions {
+  display: flex;
+  gap: 4px;
+}
+
+button.mini {
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+}
+
+button.mini:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+button.mini.toggled {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 .interval {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  align-items: center;
+}
+
+.interval .chip {
+  font-family: var(--num-font);
+  font-size: 0.78rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 1px 6px;
 }
 
 .note-badge {
@@ -201,104 +338,136 @@ header.topbar h1 {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
 }
 
-.interval .chip {
-  font-family: var(--num-font);
-  font-size: 0.82rem;
-  background: var(--accent-soft);
-  color: var(--accent);
-  border-radius: 4px;
-  padding: 1px 7px;
-}
-
-.interval .empty {
-  color: var(--ink-muted);
-}
-
-/* ---------- 键盘 ---------- */
+/* ---------- 数字键盘 ---------- */
 .keypad {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 7px;
-}
-
-button {
-  font-family: inherit;
-  background: var(--btn-bg);
-  color: var(--ink);
-  border: 1px solid var(--btn-border);
-  border-radius: 6px;
-  padding: 9px 6px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background 0.12s;
-}
-
-button:hover {
-  background: var(--btn-hover);
-}
-
-button:active {
-  transform: translateY(1px);
+  grid-template-columns: repeat(9, 1fr);
+  gap: 6px;
 }
 
 .keypad .num {
   font-family: var(--num-font);
-  font-size: 1.15rem;
-  padding: 10px 6px;
+  font-size: 1.3rem;
+  padding: 11px 0;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  border-radius: 8px;
 }
 
-.keypad .num.done {
-  opacity: 0.35;
-}
-
-.keypad .num.active-note {
-  outline: 2px solid var(--accent);
-}
-
-button.toggled {
-  background: var(--accent);
-  color: #fff;
+.keypad .num:hover {
   border-color: var(--accent);
 }
 
-/* ---------- 控制区 ---------- */
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
+.keypad .num.done {
+  opacity: 0.3;
 }
 
-.controls button {
-  flex: 1 1 auto;
-  padding: 8px 10px;
-  font-size: 0.88rem;
+.keypad .num.active-note {
+  outline: 2px dashed var(--ink-hint);
+  outline-offset: -2px;
+}
+
+/* ---------- 工具栏（单行分组 + 溢出菜单） ---------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 6px;
+}
+
+.tb {
+  padding: 6px 10px;
+  color: var(--ink);
+}
+
+.tb.icon {
+  min-width: 34px;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.tb.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 3px;
+  flex: none;
 }
 
 .difficulty {
   display: flex;
-  gap: 0;
-  border: 1px solid var(--btn-border);
-  border-radius: 6px;
-  overflow: hidden;
+  background: var(--bg);
+  border-radius: 7px;
+  padding: 2px;
+  gap: 2px;
 }
 
 .difficulty button {
-  border: none;
-  border-radius: 0;
-  border-right: 1px solid var(--btn-border);
-  font-size: 0.88rem;
-  padding: 8px 12px;
-}
-
-.difficulty button:last-child {
-  border-right: none;
+  font-size: 0.8rem;
+  padding: 4px 9px;
+  border-radius: 5px;
+  color: var(--ink-muted);
 }
 
 .difficulty button.active {
+  background: var(--surface);
+  color: var(--accent);
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.menu-wrap {
+  position: relative;
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+  min-width: 210px;
+  padding: 4px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-item {
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 0.88rem;
+}
+
+/* ---------- 出题模式操作行 ---------- */
+.editorbar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.editorbar .toggled {
   background: var(--accent);
   color: #fff;
 }
@@ -311,7 +480,7 @@ button.toggled {
   border: 1px solid var(--danger);
   border-radius: 6px;
   padding: 6px 14px;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
 }
 
 .toast.info {
@@ -333,18 +502,18 @@ button.toggled {
 .overlay .card {
   background: var(--surface);
   border-radius: 10px;
-  padding: 28px 36px;
+  padding: 26px 34px;
   text-align: center;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 13px;
 }
 
 .overlay .card h2 {
   font-family: var(--title-font);
   color: var(--accent);
-  font-size: 1.6rem;
+  font-size: 1.5rem;
 }
 
 .overlay .card .stats {
@@ -352,103 +521,13 @@ button.toggled {
   color: var(--ink-muted);
 }
 
+.overlay .card .stats.small {
+  font-size: 0.78rem;
+}
+
 footer.credit {
-  margin-top: 8px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--ink-muted);
   text-align: center;
-}
-
-
-/* ---------- 数字余量追踪条 ---------- */
-.digit-tracker-row {
-  align-self: center;
-  width: calc(var(--cell) * 9);
-}
-
-.digit-tracker {
-  display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  gap: 5px;
-}
-
-.tracker-chip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 4px 0;
-  border-radius: 6px;
-  line-height: 1.1;
-}
-
-.tracker-chip .d {
-  font-family: var(--num-font);
-  font-size: calc(var(--cell) * 0.34);
-}
-
-.tracker-chip .r {
-  font-family: var(--num-font);
-  font-size: 0.68rem;
-  color: var(--ink-muted);
-}
-
-.tracker-chip.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.tracker-chip.active .r {
-  color: #fff;
-}
-
-.tracker-chip.done {
-  opacity: 0.35;
-}
-
-/* ---------- 十字高亮与提示聚焦 ---------- */
-.cell.peer {
-  background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface));
-}
-
-.cell.hint-zone {
-  background: color-mix(in srgb, var(--ink-hint) 12%, var(--surface));
-}
-
-.cell.hint-focus-cell {
-  background: var(--accent-soft);
-  outline: 2px dashed var(--ink-hint);
-  outline-offset: -2px;
-  z-index: 2;
-}
-
-/* ---------- 出题模式边界热区 ---------- */
-.border-hotspot {
-  position: absolute;
-  z-index: 6;
-  width: calc(var(--cell) * 0.42);
-  height: calc(var(--cell) * 0.7);
-  transform: translate(-50%, -50%);
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.border-hotspot.vertical {
-  width: calc(var(--cell) * 0.7);
-  height: calc(var(--cell) * 0.42);
-}
-
-.border-hotspot:hover {
-  background: color-mix(in srgb, var(--ink-hint) 18%, transparent);
-}
-
-/* ---------- 统计行 ---------- */
-.stats-line {
-  font-size: 0.8rem;
-  color: var(--ink-muted);
-  text-align: center;
-}
-
-.stats.small {
-  font-size: 0.8rem;
+  line-height: 1.6;
 }

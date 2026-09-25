@@ -621,6 +621,25 @@ export default function App() {
           {!editor && selected && isGiven(puzzle, selected) ? '（给定数）' : ''}
         </span>
         <span className="interval">
+          {!editor && (
+            <span className="info-actions">
+              <button
+                className="mini"
+                disabled={!selected || isGiven(puzzle, selected)}
+                onClick={onErase}
+                title="清除选中格（Del）"
+              >
+                擦除
+              </button>
+              <button
+                className={`mini${noteMode ? ' toggled' : ''}`}
+                onClick={() => setNoteMode((m) => !m)}
+                title="候选笔记模式（N）"
+              >
+                笔记
+              </button>
+            </span>
+          )}
           {editor ? (
             <span className="empty">
               给定数 {editorPuzzle?.givens.length ?? 0} · 符号 {editor.signs.size} · 摆完点「验证开玩」
@@ -648,8 +667,6 @@ export default function App() {
         noteMode={noteMode}
         digitDone={editor ? new Array(10).fill(false) : digitDone}
         onNumber={inputDigit}
-        onErase={onErase}
-        onToggleNoteMode={() => setNoteMode((m) => !m)}
       />
 
       {!editor && (
@@ -675,7 +692,7 @@ export default function App() {
       )}
 
       {editor && (
-        <div className="controls">
+        <div className="editorbar">
           <button className="toggled" onClick={onEditorValidate}>
             ✅ 验证开玩（唯一解闸）
           </button>
@@ -698,8 +715,6 @@ export default function App() {
         </div>
       )}
 
-      {!editor && <div className="stats-line">📊 {statsLine}</div>}
-
       {toast && <div className={`toast ${toast.tone === 'info' ? 'info' : ''}`}>{toast.text}</div>}
 
       {solved && (
@@ -714,6 +729,8 @@ export default function App() {
       )}
 
       <footer className="credit">
+        📊 {statsLine}
+        <br />
         基础题源自谜题书「不等号数独 014」 · 设计吸纳 super-sudoku / sudokuJS / penpa-edit · 变体与随机题均由求解器把关
       </footer>
     </div>
