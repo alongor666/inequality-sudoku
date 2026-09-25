@@ -534,3 +534,97 @@ footer.credit {
   text-align: center;
   line-height: 1.6;
 }
+
+
+/* ---------- 玩法指引 ---------- */
+.help-card {
+  max-width: 520px;
+  width: calc(100vw - 40px);
+  max-height: 86vh;
+  overflow-y: auto;
+  text-align: left;
+  gap: 14px;
+  padding: 24px 26px;
+}
+
+.help-card h2 {
+  text-align: center;
+}
+
+.help-card h3 {
+  font-size: 0.95rem;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.help-card section p {
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: var(--ink);
+}
+
+.help-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.help-example {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  background: var(--bg);
+}
+
+.help-example-board {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.help-example-caption {
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+}
+
+.help-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--grid-line);
+  border-radius: 5px;
+  font-family: var(--num-font);
+  font-size: 1.05rem;
+  color: var(--ink-given);
+  background: var(--surface);
+}
+
+.help-sign {
+  display: inline-flex;
+  color: var(--sign-ink);
+  align-items: center;
+}
+
+.help-vstack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.help-mnemonic {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.help-start {
+  align-self: center;
+  padding: 9px 28px;
+  font-size: 0.95rem;
+}

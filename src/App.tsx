@@ -27,6 +27,7 @@ import { Keypad } from './components/Keypad'
 import { Controls } from './components/Controls'
 import { DigitTracker } from './components/DigitTracker'
 import { WinOverlay } from './components/WinOverlay'
+import { HelpModal } from './components/HelpModal'
 
 type Theme = 'book' | 'nature'
 
@@ -117,6 +118,11 @@ export default function App() {
   const [hintFocus, setHintFocus] = useState<Addr | null>(null)
   const [editor, setEditor] = useState<EditorState | null>(null)
   const [stats, setStats] = useState<StatsMap>(loadStats)
+  const [helpOpen, setHelpOpen] = useState(() => {
+    if (localStorage.getItem('isudoku.seen-help')) return false
+    localStorage.setItem('isudoku.seen-help', '1')
+    return true
+  })
 
   // 主题
   useEffect(() => {
@@ -573,6 +579,13 @@ export default function App() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="timer">{editor ? '—' : fmtTime(seconds)}</span>
           <button
+            onClick={() => setHelpOpen(true)}
+            title="玩法指引"
+            style={{ padding: '5px 10px' }}
+          >
+            ?
+          </button>
+          <button
             onClick={() => setTheme((t) => (t === 'book' ? 'nature' : 'book'))}
             title="切换主题"
             style={{ padding: '5px 10px' }}
@@ -716,6 +729,8 @@ export default function App() {
       )}
 
       {toast && <div className={`toast ${toast.tone === 'info' ? 'info' : ''}`}>{toast.text}</div>}
+
+      {helpOpen && <HelpModal onClose={() => setHelpOpen(false)} />}
 
       {solved && (
         <WinOverlay
