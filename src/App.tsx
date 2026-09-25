@@ -119,6 +119,26 @@ export default function App() {
     toastTimer.current = window.setTimeout(() => setToast(null), 2600)
   }, [])
 
+  const hasUserInput = useMemo(() => {
+    // 有非给定数字或任何候选笔记 = 有实质进度
+    for (let r = 1; r <= puzzle.spec.rows; r++)
+      for (let c = 1; c <= puzzle.spec.cols; c++) {
+        if (!isGiven(puzzle, { r, c })) {
+          if (progress.values[r - 1][c - 1]) return true
+          if (progress.notes[r - 1][c - 1]) return true
+        }
+      }
+    return false
+  }, [progress, puzzle])
+
+  const confirmDiscard = useCallback(
+    (action: string): boolean => {
+      if (!hasUserInput || window.confirm(`${action}将丢弃当前对局进度，确定？`)) return true
+      return false
+    },
+    [hasUserInput],
+  )
+
   const conflicts = useMemo(() => findConflicts(progress, puzzle), [progress, puzzle])
   const wrong = useMemo(() => wrongVsSolution(progress, puzzle), [progress, puzzle])
   const marked = useMemo(() => new Set([...conflicts, ...wrong]), [conflicts, wrong])
@@ -172,22 +192,24 @@ export default function App() {
   }, [showToast])
 
   const onNewRandom = useCallback(() => {
+    if (!confirmDiscard('开始新随机题')) return
     try {
       const p = generateRandom(CLASSIC_9, difficulty)
       startPuzzle(p, `已生成「${difficulty === 'easy' ? '简单' : difficulty === 'medium' ? '中等' : '困难'}」随机新题（唯一解已验证）`)
     } catch (e) {
       showToast('生成失败，请再试一次', 'warn')
     }
-  }, [difficulty, startPuzzle, showToast])
+  }, [difficulty, startPuzzle, showToast, confirmDiscard])
 
   const onVariant = useCallback(() => {
+    if (!confirmDiscard('生成变体')) return
     try {
       const v = transformPuzzle(puzzle, FULL_TRANSFORM)
       startPuzzle(v, '已生成同构变体（唯一解已验证）')
     } catch (e) {
       showToast('变体生成失败', 'warn')
     }
-  }, [puzzle, startPuzzle, showToast])
+  }, [puzzle, startPuzzle, showToast, confirmDiscard])
 
   const onHint = useCallback(() => {
     const res = applyHint(progress, puzzle)
@@ -223,6 +245,7 @@ export default function App() {
       showToast('该题无预存解答', 'warn')
       return
     }
+    if (!window.confirm('显示解答将标记本局放弃，确定？')) return
     mutate((p) => revealSolution(p, puzzle))
     showToast('已显示解答', 'info')
   }, [puzzle, mutate, showToast])
@@ -237,12 +260,13 @@ export default function App() {
   }, [])
 
   const onRestart = useCallback(() => {
+    if (!confirmDiscard('重开本题')) return
     setProgress(emptyProgress(puzzle))
     setHistory([])
     setSolved(false)
     setSelected(null)
     showToast('本题已重开', 'info')
-  }, [puzzle, showToast])
+  }, [puzzle, showToast, confirmDiscard])
 
   // 键盘操作
   useEffect(() => {
@@ -319,6 +343,7 @@ export default function App() {
 
       <div className="info-strip">
         <span>
+          {noteMode && <span className="chip note-badge">✏️ 笔记模式</span>}
           选中
           <span className="addr"> {selected ? `r${selected.r}c${selected.c}` : '—'}</span>
           {selected && isGiven(puzzle, selected) ? '（给定数）' : ''}
@@ -354,7 +379,9 @@ export default function App() {
         onDifficulty={setDifficulty}
         onNewRandom={onNewRandom}
         onVariant={onVariant}
-        onBase={() => startPuzzle(BASE_PUZZLE, '回到书题 014')}
+        onBase={() => {
+          if (confirmDiscard('回到书题 014')) startPuzzle(BASE_PUZZLE, '回到书题 014')
+        }}
         onHint={onHint}
         onCheck={onCheck}
         onReveal={onReveal}

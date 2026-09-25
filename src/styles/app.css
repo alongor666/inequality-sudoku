@@ -193,6 +193,18 @@ header.topbar h1 {
   justify-content: flex-end;
 }
 
+.note-badge {
+  background: var(--ink-hint);
+  color: #fff;
+  margin-right: 8px;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
 .interval .chip {
   font-family: var(--num-font);
   font-size: 0.82rem;
