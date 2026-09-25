@@ -209,16 +209,19 @@ button.toggled {
   color: var(--ink-muted);
 }
 
-.sign {
+.sign-slot {
   position: absolute;
   z-index: 3;
+  width: 0;
+  height: 0;
+}
+
+.sign {
+  position: absolute;
   transform: translate(-50%, -50%);
-  font-family: var(--num-font);
-  font-size: calc(var(--cell) * 0.44);
-  font-weight: 500;
-  color: var(--sign-color);
+  color: var(--sign-ink);
   pointer-events: none;
-  text-shadow: 0 0 3px var(--surface);
+  line-height: 0;
 }
 
 /* ---------- 数字余量条：贴着棋盘的细条 ---------- */

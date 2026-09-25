@@ -19,6 +19,7 @@ html[data-theme='book'] {
   --danger-soft: #fdecea;
   --same-soft: #f3ecd8;
   --sign-color: #2456d6;
+  --sign-ink: #7c93d9;
   --btn-bg: #ffffff;
   --btn-border: #c9c2b0;
   --btn-hover: #f1ecdd;
@@ -44,6 +45,7 @@ html[data-theme='nature'] {
   --danger-soft: #fdecea;
   --same-soft: #edf1d6;
   --sign-color: #609966;
+  --sign-ink: #8fb98a;
   --btn-bg: #ffffff;
   --btn-border: #d5ddd0;
   --btn-hover: #edf1d6;

@@ -20,11 +20,54 @@ interface BoardProps {
   } | null
 }
 
-const signGlyph = (con: Constraint): string => {
+/**
+ * 方向符号（SVG 矢量雪佛龙，尖指向较小数侧）：
+ * 统一笔画与臂长、圆角端点；只占边界长的 ~30%，视觉层级让位给数字。
+ */
+function SignGlyph({ con }: { con: Constraint }) {
   const horizontal = con.a.r === con.b.r
-  if (con.type === '=') return '='
-  if (horizontal) return con.type === '>' ? '>' : '<'
-  return con.type === '>' ? 'v' : '^'
+  const w = 20
+  const h = 24
+  const s = 3.1
+  const size = horizontal
+    ? { width: 'calc(var(--cell) * 0.30)', height: 'calc(var(--cell) * 0.36)' }
+    : { width: 'calc(var(--cell) * 0.36)', height: 'calc(var(--cell) * 0.30)' }
+
+  let body
+  if (con.type === '=') {
+    body =
+      horizontal === true ? (
+        <>
+          <line x1="3.5" y1="8.5" x2="16.5" y2="8.5" stroke="currentColor" strokeWidth={s} strokeLinecap="round" />
+          <line x1="3.5" y1="15.5" x2="16.5" y2="15.5" stroke="currentColor" strokeWidth={s} strokeLinecap="round" />
+        </>
+      ) : (
+        <>
+          <line x1="8.5" y1="3.5" x2="8.5" y2="20.5" stroke="currentColor" strokeWidth={s} strokeLinecap="round" />
+          <line x1="11.5" y1="3.5" x2="11.5" y2="20.5" stroke="currentColor" strokeWidth={s} strokeLinecap="round" />
+        </>
+      )
+  } else {
+    const pts =
+      horizontal
+        ? con.type === '>'
+          ? '3.5,4 16.5,12 3.5,20'
+          : '16.5,4 3.5,12 16.5,20'
+        : con.type === '>'
+          ? '4,3.5 10,20.5 16,3.5'
+          : '4,20.5 10,3.5 16,20.5'
+    body = (
+      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth={s} strokeLinecap="round" strokeLinejoin="round" />
+    )
+  }
+
+  return (
+    <span className="sign" style={size}>
+      <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="100%">
+        {body}
+      </svg>
+    </span>
+  )
 }
 
 const borderKey = (horizontal: boolean, r: number, c: number) => `${horizontal ? 'H' : 'V'} ${r} ${c}`
@@ -107,14 +150,18 @@ export function Board({
           ? {
               left: `calc(var(--cell) * ${con.a.c})`,
               top: `calc(var(--cell) * ${con.a.r - 0.5})`,
+              width: 0,
+              height: 0,
             }
           : {
               left: `calc(var(--cell) * ${con.a.c - 0.5})`,
               top: `calc(var(--cell) * ${con.a.r})`,
+              width: 0,
+              height: 0,
             }
         return (
-          <span key={i} className="sign" style={style}>
-            {signGlyph(con)}
+          <span key={i} style={style} className="sign-slot">
+            <SignGlyph con={con} />
           </span>
         )
       })}
