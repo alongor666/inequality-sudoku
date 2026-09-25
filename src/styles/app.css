@@ -1,0 +1,348 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Noto Sans SC', system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 12px 40px;
+  min-height: 100vh;
+}
+
+.app {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+header.topbar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+header.topbar h1 {
+  font-family: var(--title-font);
+  font-size: 1.35rem;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.puzzle-name {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.timer {
+  font-family: var(--num-font);
+  font-size: 1rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+/* ---------- 棋盘 ---------- */
+.board-wrap {
+  position: relative;
+  align-self: center;
+  width: calc(var(--cell) * 9);
+  height: calc(var(--cell) * 9);
+  background: var(--surface);
+  border: 2px solid var(--grid-box-line);
+  box-shadow: var(--shadow);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+:root {
+  --cell: min(10.2vw, 52px);
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  width: 100%;
+  height: 100%;
+}
+
+.cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--grid-line);
+  border-bottom: 1px solid var(--grid-line);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cell:nth-child(9n) {
+  border-right: none;
+}
+.cell.bottom-edge {
+  border-bottom: none;
+}
+.cell.box-right {
+  border-right: 2px solid var(--grid-box-line);
+}
+.cell.box-bottom {
+  border-bottom: 2px solid var(--grid-box-line);
+}
+.cell:nth-child(9n).box-right {
+  border-right: none;
+}
+
+.cell .value {
+  font-family: var(--num-font);
+  font-size: calc(var(--cell) * 0.56);
+  line-height: 1;
+  color: var(--ink-user);
+}
+
+.cell.given .value {
+  color: var(--ink-given);
+  font-weight: 700;
+}
+
+.cell.hinted .value {
+  color: var(--ink-hint);
+}
+
+.cell.revealed .value {
+  color: var(--ink-muted);
+}
+
+.cell.selected {
+  background: var(--accent-soft);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  z-index: 2;
+}
+
+.cell.same-value {
+  background: var(--same-soft);
+}
+
+.cell.conflict {
+  background: var(--danger-soft);
+}
+.cell.conflict .value {
+  color: var(--danger);
+}
+
+.notes {
+  position: absolute;
+  inset: 2px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.notes span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--num-font);
+  font-size: calc(var(--cell) * 0.22);
+  color: var(--ink-muted);
+}
+
+/* 不等号：坐在边界上 */
+.sign {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  font-family: var(--num-font);
+  font-size: calc(var(--cell) * 0.44);
+  font-weight: 500;
+  color: var(--sign-color);
+  pointer-events: none;
+  text-shadow: 0 0 3px var(--surface);
+}
+
+/* ---------- 信息条 ---------- */
+.info-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 30px;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.info-strip .addr {
+  font-family: var(--num-font);
+  color: var(--ink);
+}
+
+.interval {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.interval .chip {
+  font-family: var(--num-font);
+  font-size: 0.82rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 1px 7px;
+}
+
+.interval .empty {
+  color: var(--ink-muted);
+}
+
+/* ---------- 键盘 ---------- */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 7px;
+}
+
+button {
+  font-family: inherit;
+  background: var(--btn-bg);
+  color: var(--ink);
+  border: 1px solid var(--btn-border);
+  border-radius: 6px;
+  padding: 9px 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+button:hover {
+  background: var(--btn-hover);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+.keypad .num {
+  font-family: var(--num-font);
+  font-size: 1.15rem;
+  padding: 10px 6px;
+}
+
+.keypad .num.done {
+  opacity: 0.35;
+}
+
+.keypad .num.active-note {
+  outline: 2px solid var(--accent);
+}
+
+button.toggled {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* ---------- 控制区 ---------- */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.controls button {
+  flex: 1 1 auto;
+  padding: 8px 10px;
+  font-size: 0.88rem;
+}
+
+.difficulty {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--btn-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.difficulty button {
+  border: none;
+  border-radius: 0;
+  border-right: 1px solid var(--btn-border);
+  font-size: 0.88rem;
+  padding: 8px 12px;
+}
+
+.difficulty button:last-child {
+  border-right: none;
+}
+
+.difficulty button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ---------- 提示条 & 胜利 ---------- */
+.toast {
+  align-self: center;
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.88rem;
+}
+
+.toast.info {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 20, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.overlay .card {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 28px 36px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.overlay .card h2 {
+  font-family: var(--title-font);
+  color: var(--accent);
+  font-size: 1.6rem;
+}
+
+.overlay .card .stats {
+  font-family: var(--num-font);
+  color: var(--ink-muted);
+}
+
+footer.credit {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  text-align: center;
+}

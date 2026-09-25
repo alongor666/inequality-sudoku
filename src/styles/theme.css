@@ -1,0 +1,53 @@
+/* 双主题设计系统：book（书风蓝）与 nature（仓库系柔和自然色）。
+   灵感：Brain_Boost 的 :root 变量方案 + social-work-memory-app 的 data-theme 切换。 */
+
+:root,
+html[data-theme='book'] {
+  --bg: #f6f2e7;
+  --surface: #fffdf6;
+  --border: #d8d2c2;
+  --grid-line: #3b62c4;
+  --grid-box-line: #1d3fa0;
+  --ink: #2b2a26;
+  --ink-muted: #8a8577;
+  --ink-given: #1d3fa0;
+  --ink-user: #0e7d6f;
+  --ink-hint: #b45309;
+  --accent: #1d3fa0;
+  --accent-soft: #e3eafc;
+  --danger: #c0392b;
+  --danger-soft: #fdecea;
+  --same-soft: #f3ecd8;
+  --sign-color: #2456d6;
+  --btn-bg: #ffffff;
+  --btn-border: #c9c2b0;
+  --btn-hover: #f1ecdd;
+  --shadow: 0 1px 3px rgba(60, 50, 20, 0.12);
+  --title-font: 'Noto Serif SC', serif;
+  --num-font: 'DM Mono', 'Noto Sans SC', monospace;
+}
+
+html[data-theme='nature'] {
+  --bg: #f9f9f9;
+  --surface: #ffffff;
+  --border: #e0e0e0;
+  --grid-line: #9dc08b;
+  --grid-box-line: #609966;
+  --ink: #333333;
+  --ink-muted: #5f6c7b;
+  --ink-given: #40513b;
+  --ink-user: #3a6ea5;
+  --ink-hint: #ff8c42;
+  --accent: #609966;
+  --accent-soft: #edf1d6;
+  --danger: #c0392b;
+  --danger-soft: #fdecea;
+  --same-soft: #edf1d6;
+  --sign-color: #609966;
+  --btn-bg: #ffffff;
+  --btn-border: #d5ddd0;
+  --btn-hover: #edf1d6;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --title-font: 'Noto Serif SC', serif;
+  --num-font: 'DM Mono', 'Noto Sans SC', monospace;
+}
