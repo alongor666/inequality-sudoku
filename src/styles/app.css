@@ -358,3 +358,97 @@ footer.credit {
   color: var(--ink-muted);
   text-align: center;
 }
+
+
+/* ---------- 数字余量追踪条 ---------- */
+.digit-tracker-row {
+  align-self: center;
+  width: calc(var(--cell) * 9);
+}
+
+.digit-tracker {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 5px;
+}
+
+.tracker-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 0;
+  border-radius: 6px;
+  line-height: 1.1;
+}
+
+.tracker-chip .d {
+  font-family: var(--num-font);
+  font-size: calc(var(--cell) * 0.34);
+}
+
+.tracker-chip .r {
+  font-family: var(--num-font);
+  font-size: 0.68rem;
+  color: var(--ink-muted);
+}
+
+.tracker-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.tracker-chip.active .r {
+  color: #fff;
+}
+
+.tracker-chip.done {
+  opacity: 0.35;
+}
+
+/* ---------- 十字高亮与提示聚焦 ---------- */
+.cell.peer {
+  background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface));
+}
+
+.cell.hint-zone {
+  background: color-mix(in srgb, var(--ink-hint) 12%, var(--surface));
+}
+
+.cell.hint-focus-cell {
+  background: var(--accent-soft);
+  outline: 2px dashed var(--ink-hint);
+  outline-offset: -2px;
+  z-index: 2;
+}
+
+/* ---------- 出题模式边界热区 ---------- */
+.border-hotspot {
+  position: absolute;
+  z-index: 6;
+  width: calc(var(--cell) * 0.42);
+  height: calc(var(--cell) * 0.7);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.border-hotspot.vertical {
+  width: calc(var(--cell) * 0.7);
+  height: calc(var(--cell) * 0.42);
+}
+
+.border-hotspot:hover {
+  background: color-mix(in srgb, var(--ink-hint) 18%, transparent);
+}
+
+/* ---------- 统计行 ---------- */
+.stats-line {
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+.stats.small {
+  font-size: 0.8rem;
+}

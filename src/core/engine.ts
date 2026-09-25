@@ -78,21 +78,22 @@ export function revealSolution(p: Progress, puzzle: Puzzle): Progress {
   return next
 }
 
-/** 提示：盘面无误时填入一个空格（优先唯一候选格），有误时返回冲突提示。 */
-export function applyHint(
+/**
+ * 提示目标选取（分档不剧透的第一档用）：盘面无误时挑一个空格——
+ * 优先「唯一候选格」，否则取可行域最小的空格。返回 null 表示无可提示目标。
+ */
+export function hintTarget(
   p: Progress,
   puzzle: Puzzle,
-): { kind: 'filled'; addr: Addr; value: number } | { kind: 'conflict' } | { kind: 'done' } {
+): { kind: 'target'; addr: Addr; feasible: number[] } | { kind: 'conflict' } | { kind: 'done' } {
   if (p.revealed) return { kind: 'done' }
-  const conflicts = findConflicts(p, puzzle)
-  if (conflicts.size > 0) return { kind: 'conflict' }
+  if (findConflicts(p, puzzle).size > 0) return { kind: 'conflict' }
   if (!puzzle.solution) return { kind: 'conflict' }
   const empties: Addr[] = []
   for (let r = 1; r <= puzzle.spec.rows; r++)
     for (let c = 1; c <= puzzle.spec.cols; c++)
       if (p.values[r - 1][c - 1] === 0) empties.push({ r, c })
   if (empties.length === 0) return { kind: 'done' }
-  // 优先可行域只剩一个值的格子
   let pick = empties[0]
   let pickFeasible: number[] = []
   for (const addr of empties) {
@@ -107,10 +108,7 @@ export function applyHint(
       pickFeasible = f
     }
   }
-  const value = pickFeasible.length === 1 ? pickFeasible[0] : puzzle.solution[pick.r - 1][pick.c - 1]
-  const next = setValue(p, puzzle, pick, value)
-  next.hinted.add(`${pick.r},${pick.c}`)
-  return { kind: 'filled', addr: pick, value }
+  return { kind: 'target', addr: pick, feasible: pickFeasible }
 }
 
 /**
@@ -198,6 +196,21 @@ export function wrongVsSolution(p: Progress, puzzle: Puzzle): Set<string> {
       if (v !== puzzle.solution[r][c]) bad.add(`${r + 1},${c + 1}`)
     }
   return bad
+}
+
+/** 一键智能笔记：所有空格的笔记一次性填入完整可行候选（super-sudoku Smart Notes）。 */
+export function autoFillNotes(p: Progress, puzzle: Puzzle): Progress {
+  const next: Progress = { ...p, values: p.values.map((r) => [...r]), notes: p.notes.map((r) => [...r]), hinted: new Set(p.hinted) }
+  for (let r = 1; r <= puzzle.spec.rows; r++)
+    for (let c = 1; c <= puzzle.spec.cols; c++) {
+      if (p.values[r - 1][c - 1] !== 0) continue
+      const mask = feasibleValues(puzzle.spec, p.values, puzzle.constraints, { r, c }).reduce(
+        (acc, v) => acc | (1 << v),
+        0,
+      )
+      next.notes[r - 1][c - 1] = mask
+    }
+  return next
 }
 
 /** 区间提示：选中格的可行数字集合（空数组 = 已填/无候选）。 */

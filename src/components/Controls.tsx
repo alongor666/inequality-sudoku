@@ -10,8 +10,12 @@ interface ControlsProps {
   onCheck: () => void
   onReveal: () => void
   onUndo: () => void
+  onRedo: () => void
   onRestart: () => void
+  onSmartNotes: () => void
+  onEditor: () => void
   canUndo: boolean
+  canRedo: boolean
 }
 
 const DIFFS: { key: Difficulty; label: string }[] = [
@@ -46,7 +50,14 @@ export function Controls(p: ControlsProps) {
         <button onClick={p.onUndo} disabled={!p.canUndo} style={{ opacity: p.canUndo ? 1 : 0.45 }}>
           ↩ 撤销
         </button>
+        <button onClick={p.onRedo} disabled={!p.canRedo} style={{ opacity: p.canRedo ? 1 : 0.45 }}>
+          ↪ 重做
+        </button>
         <button onClick={p.onRestart}>⟲ 重开本题</button>
+      </div>
+      <div className="controls">
+        <button onClick={p.onSmartNotes}>✨ 智能笔记</button>
+        <button onClick={p.onEditor}>✏️ 出题模式</button>
       </div>
     </>
   )

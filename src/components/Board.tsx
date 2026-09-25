@@ -7,19 +7,50 @@ interface BoardProps {
   selected: Addr | null
   conflicts: Set<string>
   sameValues: Set<string>
+  /** 选中格的行/列/宫同伴（十字高亮） */
+  peerAddrs?: Set<string>
+  /** 分档提示第一档：聚焦格（连同其行列宫强调高亮） */
+  hintFocus?: Addr | null
   onSelect: (addr: Addr) => void
+  /** 出题模式：渲染可点击的边界热区并使用编辑中的符号 */
+  editor?: {
+    signs: Map<string, Constraint>
+    sel: Addr | null
+    onBorder: (key: string) => void
+  } | null
 }
 
 const signGlyph = (con: Constraint): string => {
   const horizontal = con.a.r === con.b.r
-  if (horizontal) return con.type === '>' ? '>' : con.type === '<' ? '<' : '='
-  // 纵向：a 在上。a > b 记 'v'（尖朝下指小），a < b 记 '^'
   if (con.type === '=') return '='
+  if (horizontal) return con.type === '>' ? '>' : '<'
   return con.type === '>' ? 'v' : '^'
 }
 
-export function Board({ puzzle, progress, selected, conflicts, sameValues, onSelect }: BoardProps) {
+const borderKey = (horizontal: boolean, r: number, c: number) => `${horizontal ? 'H' : 'V'} ${r} ${c}`
+
+export function Board({
+  puzzle,
+  progress,
+  selected,
+  conflicts,
+  sameValues,
+  peerAddrs,
+  hintFocus,
+  onSelect,
+  editor,
+}: BoardProps) {
   const n = puzzle.spec.rows
+  const inHintZone = (r: number, c: number): boolean => {
+    if (!hintFocus) return false
+    return (
+      hintFocus.r === r ||
+      hintFocus.c === c ||
+      (Math.floor((hintFocus.r - 1) / puzzle.spec.boxRows) === Math.floor((r - 1) / puzzle.spec.boxRows) &&
+        Math.floor((hintFocus.c - 1) / puzzle.spec.boxCols) === Math.floor((c - 1) / puzzle.spec.boxCols))
+    )
+  }
+
   const cells = []
   for (let r = 1; r <= n; r++)
     for (let c = 1; c <= n; c++) {
@@ -35,8 +66,11 @@ export function Board({ puzzle, progress, selected, conflicts, sameValues, onSel
       if (progress.hinted.has(`${r},${c}`)) classes.push('hinted')
       if (progress.revealed && !isGiven) classes.push('revealed')
       if (selected && selected.r === r && selected.c === c) classes.push('selected')
+      else if (peerAddrs?.has(key)) classes.push('peer')
       if (sameValues.has(key)) classes.push('same-value')
       if (conflicts.has(key)) classes.push('conflict')
+      if (hintFocus && hintFocus.r === r && hintFocus.c === c) classes.push('hint-focus-cell')
+      else if (inHintZone(r, c)) classes.push('hint-zone')
 
       const noteBits = progress.notes[r - 1][c - 1]
       cells.push(
@@ -60,12 +94,14 @@ export function Board({ puzzle, progress, selected, conflicts, sameValues, onSel
       )
     }
 
+  const constraints: Constraint[] = editor ? [...editor.signs.values()] : puzzle.constraints
+
   return (
     <div className="board-wrap">
       <div className="board-grid" role="grid">
         {cells}
       </div>
-      {puzzle.constraints.map((con, i) => {
+      {constraints.map((con, i) => {
         const horizontal = con.a.r === con.b.r
         const style = horizontal
           ? {
@@ -82,6 +118,39 @@ export function Board({ puzzle, progress, selected, conflicts, sameValues, onSel
           </span>
         )
       })}
+      {editor &&
+        Array.from({ length: n }, (_, r) => r + 1).flatMap((r) =>
+          Array.from({ length: n }, (_, c) => c + 1).flatMap((c) => {
+            const spots: React.ReactNode[] = []
+            if (c < n)
+              spots.push(
+                <span
+                  key={`hb-${r}-${c}`}
+                  className="border-hotspot"
+                  style={{
+                    left: `calc(var(--cell) * ${c})`,
+                    top: `calc(var(--cell) * ${r - 0.5})`,
+                  }}
+                  onClick={() => editor.onBorder(borderKey(true, r, c))}
+                  title="点击切换横向符号：无 → > → <"
+                />,
+              )
+            if (r < n)
+              spots.push(
+                <span
+                  key={`vb-${r}-${c}`}
+                  className="border-hotspot vertical"
+                  style={{
+                    left: `calc(var(--cell) * ${c - 0.5})`,
+                    top: `calc(var(--cell) * ${r})`,
+                  }}
+                  onClick={() => editor.onBorder(borderKey(false, r, c))}
+                  title="点击切换纵向符号：无 → v（上大）→ ^（下大）"
+                />,
+              )
+            return spots
+          }),
+        )}
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { BASE_PUZZLE } from '../data/puzzles'
 import { solvePuzzle } from '../core/solver'
 import { FULL_TRANSFORM, transformPuzzle } from '../core/variants'
 import { generateRandom } from '../core/generator'
-import { emptyProgress, findConflicts, intervalOf, isComplete, setValue, toggleNote } from '../core/engine'
+import { autoFillNotes, emptyProgress, findConflicts, hintTarget, intervalOf, isComplete, setValue, toggleNote } from '../core/engine'
 import type { Addr } from '../core/types'
 
 const KNOWN_SOLUTION = [
@@ -149,6 +149,25 @@ describe('对局引擎', () => {
     for (let r = 1; r <= 9; r++)
       for (let c = 1; c <= 9; c++) if (!p.values[r - 1][c - 1]) p = setValue(p, BASE_PUZZLE, addr(r, c), KNOWN_SOLUTION[r - 1][c - 1])
     expect(isComplete(p, BASE_PUZZLE)).toBe(true)
+  })
+
+  it('一键智能笔记：所有空格写入完整可行候选', () => {
+    const p0 = emptyProgress(BASE_PUZZLE)
+    const p = autoFillNotes(p0, BASE_PUZZLE)
+    const mask = p.notes[0][0]
+    expect([1, 3, 4, 6, 8, 9].every((v) => mask & (1 << v))).toBe(true)
+    expect(mask & (1 << 2)).toBeFalsy()
+    expect(p.notes[0][1]).toBe(0) // 给定格不写笔记
+  })
+
+  it('提示目标（分档第一档）：只选格不填数，可行域至少 1 个', () => {
+    const p = emptyProgress(BASE_PUZZLE)
+    const res = hintTarget(p, BASE_PUZZLE)
+    expect(res.kind).toBe('target')
+    if (res.kind === 'target') {
+      expect(res.feasible.length).toBeGreaterThanOrEqual(1)
+      expect(p.values[res.addr.r - 1][res.addr.c - 1]).toBe(0)
+    }
   })
 
   it('可行域收窄：r1c3 填 1 后，因 r1c3>2 成立无冲突；但填 1 会让 r1c1 的可行集收缩', () => {
