@@ -88,9 +88,8 @@ function buildFromSolution(
   signProb: number,
   rng: () => number,
 ): Puzzle | null {
-  const n = spec.cols
-  // 约束：从解盘读取真实关系
-  let constraints: Constraint[] = allAdjacents(spec)
+  // 符号一次定死：密度由难度控制，收紧阶段绝不膨胀（防符号海）
+  const constraints: Constraint[] = allAdjacents(spec)
     .filter(() => rng() < signProb)
     .map(({ a, b }) => {
       const va = sol[a.r - 1][a.c - 1]
@@ -98,59 +97,30 @@ function buildFromSolution(
       return va > vb ? { type: '>' as const, a, b } : { type: '<' as const, a, b }
     })
 
-  // 给定数：随机挑 targetGivens 个
-  const cells = shuffled(
-    allCells(spec),
-    rng,
-  ).slice(0, Math.min(targetGivens, n * n))
-  let givens = cells.map((addr) => ({ addr, value: sol[addr.r - 1][addr.c - 1] }))
+  // 自顶向下挖洞：从全盘给定出发，随机删格，只要仍唯一就继续，直到目标数量
+  const all = allCells(spec)
+  let givens: { addr: Addr; value: number }[] = all.map((addr) => ({
+    addr,
+    value: sol[addr.r - 1][addr.c - 1],
+  }))
+  const order = shuffled(all, rng)
+  for (const addr of order) {
+    if (givens.length <= targetGivens) break
+    const trial = givens.filter((g) => g.addr.r !== addr.r || g.addr.c !== addr.c)
+    if (solvePuzzle(spec, trial, constraints, 2).count === 1) givens = trial
+  }
 
-  const id = `gen-${Date.now().toString(36)}-${Math.floor(rng() * 1e4).toString(36)}`
-  const tryPuzzle = (g: typeof givens, cons: Constraint[]): Puzzle => ({
-    id,
+  const puzzle: Puzzle = {
+    id: `gen-${Date.now().toString(36)}-${Math.floor(rng() * 1e4).toString(36)}`,
     name: '随机新题',
     spec,
-    givens: g,
-    constraints: cons,
+    givens,
+    constraints,
     solution: sol,
-  })
-
-  // 收紧循环：不唯一就先补约束（从尚未使用的邻接对里挑），再补给定数
-  const usedPairs = new Set(constraints.map((c) => pairKey(c.a, c.b)))
-  const spare = allAdjacents(spec).filter((p) => !usedPairs.has(pairKey(p.a, p.b)))
-  let spareIdx = 0
-  const shuffledSpare = shuffled(spare, rng)
-
-  for (let guard = 0; guard < 200; guard++) {
-    const res = solvePuzzle(spec, givens, constraints, 2)
-    if (res.count === 1) {
-      const puzzle = tryPuzzle(givens, constraints)
-      // 出口验证（fail-closed）
-      const check = solvePuzzle(spec, puzzle.givens, puzzle.constraints, 2)
-      return check.count === 1 ? puzzle : null
-    }
-    if (res.count === 0) return null // 不应发生（一切派生自解盘），防御
-    if (spareIdx < shuffledSpare.length) {
-      const p = shuffledSpare[spareIdx++]
-      const va = sol[p.a.r - 1][p.a.c - 1]
-      const vb = sol[p.b.r - 1][p.b.c - 1]
-      constraints = [...constraints, va > vb ? { type: '>', a: p.a, b: p.b } : { type: '<', a: p.a, b: p.b }]
-    } else if (givens.length < n * n) {
-      const remaining = allCells(spec).filter(
-        (addr) => !givens.some((g) => g.addr.r === addr.r && g.addr.c === addr.c),
-      )
-      const pick = remaining[Math.floor(rng() * remaining.length)]
-      givens = [...givens, { addr: pick, value: sol[pick.r - 1][pick.c - 1] }]
-    } else {
-      return null
-    }
   }
-  return null
-}
-
-function pairKey(a: Addr, b: Addr): string {
-  const [x, y] = a.r < b.r || (a.r === b.r && a.c < b.c) ? [a, b] : [b, a]
-  return `${x.r},${x.c}-${y.r},${y.c}`
+  // 出口验证（fail-closed）
+  const check = solvePuzzle(spec, puzzle.givens, puzzle.constraints, 2)
+  return check.count === 1 ? puzzle : null
 }
 
 function allCells(spec: GridSpec): Addr[] {
